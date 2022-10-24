@@ -12,7 +12,7 @@ if Code.ensure_loaded?(Postgrex) do
     @impl true
     def type, do: Postgrex.Interval
 
-    @impl tru
+    @impl true
 
     def cast(%{years: years, months: months, days: days, secs: secs}) do
       do_cast(years, months, days, secs)

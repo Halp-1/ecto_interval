@@ -13,24 +13,139 @@ if Code.ensure_loaded?(Postgrex) do
     def type, do: Postgrex.Interval
 
     @impl true
-    def cast(%{"months" => months, "days" => days, "secs" => secs}) do
-      do_cast(months, days, secs)
+
+    def cast(%{years: years, months: months, days: days, secs: secs}) do
+      do_cast(years, months, days, secs)
+    end
+
+    def cast(%{years: years, months: months, days: days}) do
+      do_cast(years, months, days, 0)
+    end
+
+    def cast(%{years: years, months: months, secs: secs}) do
+      do_cast(years, months, 0, secs)
+    end
+
+    def cast(%{years: years, days: days, secs: secs}) do
+      do_cast(years, 0, days, secs)
     end
 
     def cast(%{months: months, days: days, secs: secs}) do
-      do_cast(months, days, secs)
+      do_cast(0, months, days, secs)
+    end
+
+    def cast(%{years: years, months: months}) do
+      do_cast(years, months, 0, 0)
+    end
+
+    def cast(%{years: years, days: days}) do
+      do_cast(years, 0, days, 0)
+    end
+
+    def cast(%{years: years, secs: secs}) do
+      do_cast(years, 0, 0, secs)
+    end
+
+    def cast(%{months: months, days: days}) do
+      do_cast(0, months, days, 0)
+    end
+
+    def cast(%{months: months, secs: secs}) do
+      do_cast(0, months, 0, secs)
+    end
+
+    def cast(%{days: days, secs: secs}) do
+      do_cast(0, 0, days, secs)
+    end
+
+    def cast(%{years: years}) do
+      do_cast(years, 0, 0, 0)
+    end
+
+    def cast(%{months: months}) do
+      do_cast(0, months, 0, 0)
+    end
+
+    def cast(%{days: days}) do
+      do_cast(0, 0, days, 0)
+    end
+
+    def cast(%{secs: secs}) do
+      do_cast(0, 0, 0, secs)
+    end
+
+    def cast(%{"years" => years, "months" => months, "days" => days, "secs" => secs}) do
+      do_cast(years, months, days, secs)
+    end
+
+    def cast(%{"years" => years, "months" => months, "days" => days}) do
+      do_cast(years, months, days, 0)
+    end
+
+    def cast(%{"years" => years, "months" => months, "secs" => secs}) do
+      do_cast(years, months, 0, secs)
+    end
+
+    def cast(%{"years" => years, "days" => days, "secs" => secs}) do
+      do_cast(years, 0, days, secs)
+    end
+
+    def cast(%{"months" => months, "days" => days, "secs" => secs}) do
+      do_cast(0, months, days, secs)
+    end
+
+    def cast(%{"years" => years, "months" => months}) do
+      do_cast(years, months, 0, 0)
+    end
+
+    def cast(%{"years" => years, "days" => days}) do
+      do_cast(years, 0, days, 0)
+    end
+
+    def cast(%{"years" => years, "secs" => secs}) do
+      do_cast(years, 0, 0, secs)
+    end
+
+    def cast(%{"months" => months, "days" => days}) do
+      do_cast(0, months, days, 0)
+    end
+
+    def cast(%{"months" => months, "secs" => secs}) do
+      do_cast(0, months, 0, secs)
+    end
+
+    def cast(%{"days" => days, "secs" => secs}) do
+      do_cast(0, 0, days, secs)
+    end
+
+    def cast(%{"years" => years}) do
+      do_cast(years, 0, 0, 0)
+    end
+
+    def cast(%{"months" => months}) do
+      do_cast(0, months, 0, 0)
+    end
+
+    def cast(%{"days" => days}) do
+      do_cast(0, 0, days, 0)
+    end
+
+    def cast(%{"secs" => secs}) do
+      do_cast(0, 0, 0, secs)
     end
 
     def cast(_) do
       :error
     end
 
-    defp do_cast(months, days, secs) do
+    defp do_cast(years, months, days, secs) do
       try do
+        years = to_integer(years)
         months = to_integer(months)
         days = to_integer(days)
         secs = to_integer(secs)
-        {:ok, %{months: months, days: days, secs: secs}}
+
+        {:ok, %{months: years * 12 + months, days: days, secs: secs}}
       rescue
         _ -> :error
       end

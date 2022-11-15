@@ -165,12 +165,12 @@ if Code.ensure_loaded?(Postgrex) do
     end
 
     @impl true
-    def dump(%{months: months, days: days, secs: secs}) do
-      {:ok, %Postgrex.Interval{months: months, days: days, secs: secs}}
+    def dump(%{years: years, months: months, days: days, secs: secs}) do
+      {:ok, %Postgrex.Interval{months: months + 12*years, days: days, secs: secs}}
     end
 
-    def dump(%{"months" => months, "days" => days, "secs" => secs}) do
-      {:ok, %Postgrex.Interval{months: months, days: days, secs: secs}}
+    def dump(%{"years" => years, "months" => months, "days" => days, "secs" => secs}) do
+      {:ok, %Postgrex.Interval{months: months + 12*years, days: days, secs: secs}}
     end
   end
 

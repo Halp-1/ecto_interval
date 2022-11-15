@@ -161,7 +161,7 @@ if Code.ensure_loaded?(Postgrex) do
 
     @impl true
     def load(%{months: months, days: days, secs: secs}) do
-      {:ok, {years: div(months,12), months: rem(months,12), days: days, secs: secs}}
+      {:ok, {years: 0, months: 0, days: days, secs: secs}}
     end
 
     @impl true

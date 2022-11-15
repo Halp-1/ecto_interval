@@ -145,7 +145,7 @@ if Code.ensure_loaded?(Postgrex) do
         days = to_integer(days)
         secs = to_integer(secs)
 
-        {:ok, %{months: years * 12 + months, days: days, secs: secs}}
+        {:ok, %{years: years, months: months, days: days, secs: secs}}
       rescue
         _ -> :error
       end
@@ -161,16 +161,20 @@ if Code.ensure_loaded?(Postgrex) do
 
     @impl true
     def load(%{months: months, days: days, secs: secs}) do
-      {:ok, %Postgrex.Interval{months: months, days: days, secs: secs}}
+      {:ok, %{years: div(months,12), months: rem(months,12), days: days, secs: secs}}
     end
 
     @impl true
-    def dump(%{months: months, days: days, secs: secs}) do
-      {:ok, %Postgrex.Interval{months: months, days: days, secs: secs}}
+    def dump(%{years: years, months: months, days: days, secs: secs}) do
+      {:ok, %Postgrex.Interval{months: months + years * 12, days: days, secs: secs}}
     end
 
-    def dump(%{"months" => months, "days" => days, "secs" => secs}) do
-      {:ok, %Postgrex.Interval{months: months, days: days, secs: secs}}
+    def dump(%{"years" => years, "months" => months, "days" => days, "secs" => secs}) do
+      {:ok, %Postgrex.Interval{months: months + years * 12, days: days, secs: secs}}
+    end
+
+    def dump(_) do
+      :error
     end
   end
 

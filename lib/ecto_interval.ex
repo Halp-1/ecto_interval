@@ -4,15 +4,7 @@ if Code.ensure_loaded?(Postgrex) do
     This implements Interval support for Postgrex that used to be in Ecto but no longer is.
     """
 
-    # @type interval_string_map :: %{
-    #         optional("years") => String.t(),
-    #         optional("months") => String.t(),
-    #         optional("weeks") => String.t(),
-    #         optional("days") => String.t(),
-    #         optional("secs") => String.t()
-    #       }
-
-    @type interval_atom_map :: %{
+    @type interval_map :: %{
             optional(:years) => integer() | String.t(),
             optional(:months) => integer() | String.t(),
             optional(:weeks) => integer() | String.t(),
@@ -30,7 +22,7 @@ if Code.ensure_loaded?(Postgrex) do
     def type, do: Postgrex.Interval
 
     @impl true
-    @spec cast(interval_atom_map()) :: :error | {:ok, interval_atom_map()}
+    @spec cast(interval_map()) :: :error | {:ok, interval_map()}
     def cast(interval) when is_map(interval) do
       atom_interval =
         Map.new(interval, fn {k, v} ->

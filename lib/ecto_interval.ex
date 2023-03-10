@@ -3,6 +3,23 @@ if Code.ensure_loaded?(Postgrex) do
     @moduledoc """
     This implements Interval support for Postgrex that used to be in Ecto but no longer is.
     """
+
+    # @type interval_string_map :: %{
+    #         optional("years") => String.t(),
+    #         optional("months") => String.t(),
+    #         optional("weeks") => String.t(),
+    #         optional("days") => String.t(),
+    #         optional("secs") => String.t()
+    #       }
+
+    @type interval_atom_map :: %{
+            optional(:years) => integer() | String.t(),
+            optional(:months) => integer() | String.t(),
+            optional(:weeks) => integer() | String.t(),
+            optional(:days) => integer() | String.t(),
+            optional(:secs) => integer() | String.t()
+          }
+
     if macro_exported?(Ecto.Type, :__using__, 1) do
       use Ecto.Type
     else
@@ -13,139 +30,39 @@ if Code.ensure_loaded?(Postgrex) do
     def type, do: Postgrex.Interval
 
     @impl true
+    @spec cast(interval_atom_map()) :: :error | {:ok, interval_atom_map()}
+    def cast(interval) when is_map(interval) do
+      atom_interval =
+        Map.new(interval, fn {k, v} ->
+          if is_atom(k) do
+            {k, v}
+          else
+            {String.to_atom(k), v}
+          end
+        end)
 
-    def cast(%{years: years, months: months, days: days, secs: secs}) do
-      do_cast(years, months, days, secs)
-    end
+      years = Map.get(atom_interval, :years, 0)
+      months = Map.get(atom_interval, :months, 0)
+      weeks = Map.get(atom_interval, :weeks, 0)
+      days = Map.get(atom_interval, :days, 0)
+      secs = Map.get(atom_interval, :secs, 0)
 
-    def cast(%{years: years, months: months, days: days}) do
-      do_cast(years, months, days, 0)
-    end
-
-    def cast(%{years: years, months: months, secs: secs}) do
-      do_cast(years, months, 0, secs)
-    end
-
-    def cast(%{years: years, days: days, secs: secs}) do
-      do_cast(years, 0, days, secs)
-    end
-
-    def cast(%{months: months, days: days, secs: secs}) do
-      do_cast(0, months, days, secs)
-    end
-
-    def cast(%{years: years, months: months}) do
-      do_cast(years, months, 0, 0)
-    end
-
-    def cast(%{years: years, days: days}) do
-      do_cast(years, 0, days, 0)
-    end
-
-    def cast(%{years: years, secs: secs}) do
-      do_cast(years, 0, 0, secs)
-    end
-
-    def cast(%{months: months, days: days}) do
-      do_cast(0, months, days, 0)
-    end
-
-    def cast(%{months: months, secs: secs}) do
-      do_cast(0, months, 0, secs)
-    end
-
-    def cast(%{days: days, secs: secs}) do
-      do_cast(0, 0, days, secs)
-    end
-
-    def cast(%{years: years}) do
-      do_cast(years, 0, 0, 0)
-    end
-
-    def cast(%{months: months}) do
-      do_cast(0, months, 0, 0)
-    end
-
-    def cast(%{days: days}) do
-      do_cast(0, 0, days, 0)
-    end
-
-    def cast(%{secs: secs}) do
-      do_cast(0, 0, 0, secs)
-    end
-
-    def cast(%{"years" => years, "months" => months, "days" => days, "secs" => secs}) do
-      do_cast(years, months, days, secs)
-    end
-
-    def cast(%{"years" => years, "months" => months, "days" => days}) do
-      do_cast(years, months, days, 0)
-    end
-
-    def cast(%{"years" => years, "months" => months, "secs" => secs}) do
-      do_cast(years, months, 0, secs)
-    end
-
-    def cast(%{"years" => years, "days" => days, "secs" => secs}) do
-      do_cast(years, 0, days, secs)
-    end
-
-    def cast(%{"months" => months, "days" => days, "secs" => secs}) do
-      do_cast(0, months, days, secs)
-    end
-
-    def cast(%{"years" => years, "months" => months}) do
-      do_cast(years, months, 0, 0)
-    end
-
-    def cast(%{"years" => years, "days" => days}) do
-      do_cast(years, 0, days, 0)
-    end
-
-    def cast(%{"years" => years, "secs" => secs}) do
-      do_cast(years, 0, 0, secs)
-    end
-
-    def cast(%{"months" => months, "days" => days}) do
-      do_cast(0, months, days, 0)
-    end
-
-    def cast(%{"months" => months, "secs" => secs}) do
-      do_cast(0, months, 0, secs)
-    end
-
-    def cast(%{"days" => days, "secs" => secs}) do
-      do_cast(0, 0, days, secs)
-    end
-
-    def cast(%{"years" => years}) do
-      do_cast(years, 0, 0, 0)
-    end
-
-    def cast(%{"months" => months}) do
-      do_cast(0, months, 0, 0)
-    end
-
-    def cast(%{"days" => days}) do
-      do_cast(0, 0, days, 0)
-    end
-
-    def cast(%{"secs" => secs}) do
-      do_cast(0, 0, 0, secs)
+      do_cast(years, months, weeks, days, secs)
     end
 
     def cast(_) do
       :error
     end
 
-    defp do_cast(years, months, days, secs) do
+    defp do_cast(years, months, weeks, days, secs) do
       try do
         years = to_integer(years)
         months = to_integer(months)
+        weeks = to_integer(weeks)
         days = to_integer(days)
         secs = to_integer(secs)
 
-        {:ok, %{years: years, months: months, days: days, secs: secs}}
+        {:ok, %{years: years, months: months, weeks: weeks, days: days, secs: secs}}
       rescue
         _ -> :error
       end
@@ -160,16 +77,25 @@ if Code.ensure_loaded?(Postgrex) do
     end
 
     @impl true
-    def load(%{months: months, days: days, secs: secs}) do
-      {:ok, %{years: div(months,12), months: rem(months,12), days: days, secs: secs}}
+    def load(%{months: months, days: days, weeks: weeks, secs: secs}) do
+      {:ok,
+       %{years: div(months, 12), months: rem(months, 12), weeks: weeks, days: days, secs: secs}}
     end
 
     @impl true
-    def dump(%{years: years, months: months, days: days, secs: secs}) do
+    def dump(%{years: years, months: months, weeks: weeks, days: days, secs: secs}) do
+      days = weeks * 7 + days
       {:ok, %Postgrex.Interval{months: months + years * 12, days: days, secs: secs}}
     end
 
-    def dump(%{"years" => years, "months" => months, "days" => days, "secs" => secs}) do
+    def dump(%{
+          "years" => years,
+          "months" => months,
+          "weeks" => weeks,
+          "days" => days,
+          "secs" => secs
+        }) do
+      days = weeks * 7 + days
       {:ok, %Postgrex.Interval{months: months + years * 12, days: days, secs: secs}}
     end
 

@@ -140,12 +140,4 @@ if Code.ensure_loaded?(Postgrex) do
       inspect(Map.from_struct(inv))
     end
   end
-
-  if Code.ensure_loaded?(Phoenix.HTML.Safe) do
-    defimpl Phoenix.HTML.Safe, for: [Postgrex.Interval] do
-      def to_iodata(inv) do
-        to_string(inv)
-      end
-    end
-  end
 end
